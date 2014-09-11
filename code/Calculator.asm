@@ -29,15 +29,15 @@ StopWDT     mov.w   #WDTPW|WDTHOLD,&WDTCTL  ; Stop watchdog timer
 ;-------------------------------------------------------------------------------
                                             ; Main loop here
 ;-------------------------------------------------------------------------------
-readers:
-			mov.w	#myResults, r10
+readers:									; reads in the calculator inputs, init the RAM space,
+			mov.w	#myResults, r10			; sets registers for first operand, operation, and second operand
 			mov.w	#myProgram, r5
 			mov.b	@r5+, r6
 			mov.b	@r5+, r7
 			mov.b	@r5+, r8
 
-checks:
-			mov.b	@r5+, r12
+checks:										; finds the next operation and next second operand,
+			mov.b	@r5+, r12				; checks to find what operation to perform
 			mov.b	@r5+, r13
 			cmp.b	#0x11, r7
 			jeq		checkADD
@@ -49,24 +49,22 @@ checks:
 			jeq		checkEND
 			jmp		NOOP
 
-checkADD:
-			mov.b	r6, r9
-			add.w	r8, r9
-			cmp.w	#0x00FF, r9
+checkADD:									; adds w/ a check to make sure that the value does
+			mov.b	r6, r9					; not exceed the max (255)
+			add.w	r8, r9					; r9 will be used throughout in order to store the result
+			cmp.w	#0x00FF, r9				; and reuse the result as the first operand
 			jge		overMax
 			jmp		storeAnswer
-
 overMax:
 			mov.b	#0xFF, r9
 			jmp		storeAnswer
 
-checkSUB:
-			mov.b	r6, r9
+checkSUB:									; subs w/ a check to make sure that the value does
+			mov.b	r6, r9					; not go below the minimum (0)
 			sub.w	r8, r9
 			cmp.w	#0x0000, r9
 			jl		underMin
 			jmp		storeAnswer
-
 underMin:
 			mov.b	#0x00, r9
 			jmp		storeAnswer
@@ -75,8 +73,8 @@ underMin:
 
 			;jmp		storeAnswer
 
-checkCLR:
-			mov.b	@r5+, r14
+checkCLR:									; uses extra registers in conjunction with the next
+			mov.b	@r5+, r14				; second operand to use a fresh first operand and operation;
 			mov.b	@r5+, r15
 			mov.b	r13, r6
 			mov.b	r14, r7
@@ -86,14 +84,14 @@ checkCLR:
 			jmp		checks
 
 
-storeAnswer:
+storeAnswer:								; stores the results from operations
 			mov.b	r9, 0(r10)
 			inc.w	r10
 			jmp		next
 
-next:
-			cmp.b	#0x44, r12
-			jeq		checkCLR
+next:										; checks if the next operation is a clear or
+			cmp.b	#0x44, r12				; end op, and jumps as needed; also sets the new
+			jeq		checkCLR				; operands and operation
 			cmp.b	#0x55, r12
 			jeq		checkEND
 			mov.b	r9, r6
@@ -101,8 +99,8 @@ next:
 			mov.b	r13, r8
 			jmp		checks
 
-checkEND:
-			jmp		checkEND
+checkEND:									; loops to terminate the program or in case of
+			jmp		checkEND				; invalid input for an operation
 
 NOOP:
 			jmp		NOOP
