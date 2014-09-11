@@ -18,7 +18,7 @@
                                             ; section
 ;-------------------------------------------------------------------------------
                 .text
-myProgram:      .byte      0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0xDD, 0x44, 0x08, 0x22, 0x09, 0x44, 0xFF, 0x22, 0xFD, 0x55
+myProgram:      .byte      0x22, 0x11, 0x22, 0x22, 0x33, 0x33, 0x08, 0x44, 0x08, 0x22, 0x09, 0x44, 0xff, 0x11, 0xff, 0x44, 0xcc, 0x33, 0x02, 0x33, 0x00, 0x44, 0x33, 0x33, 0x08, 0x55
 
                 .data
 myResults:      .space      20
@@ -43,10 +43,8 @@ checks:										; finds the next operation and next second operand,
 			jeq		checkADD
 			cmp.b	#0x22, r7
 			jeq		checkSUB
-			;cmp.b	#0x33, r7
-			;jeq		checkMUL
-			cmp.b	#0x55, r7
-			jeq		checkEND
+			cmp.b	#0x33, r7
+			jeq		checkMUL
 			jmp		NOOP
 
 checkADD:									; adds w/ a check to make sure that the value does
@@ -69,12 +67,24 @@ underMin:
 			mov.b	#0x00, r9
 			jmp		storeAnswer
 
-;checkMUL:
-
-			;jmp		storeAnswer
+checkMUL:									; adds the first operand to the result x times, where
+			clr.b	r9						; x = r8; decrements 8 in order to determine # of times
+multiply:									; stays within max value (255) and checks for *0 case
+			add.w	r6, r9					; Uses O(n)
+			cmp.b	#0x00, r8
+			jeq		zeroCase
+			cmp.w	#0x00FF, r9
+			jge		overMax
+			dec.b	r8
+			cmp.b	#0x00, r8
+			jeq		storeAnswer
+			jge		multiply
+zeroCase:
+			clr.b	r9
+			jmp		storeAnswer
 
 checkCLR:									; uses extra registers in conjunction with the next
-			mov.b	@r5+, r14				; second operand to use a fresh first operand and operation;
+			mov.b	@r5+, r14				; second operand to use a fresh first operand and operation
 			mov.b	@r5+, r15
 			mov.b	r13, r6
 			mov.b	r14, r7
