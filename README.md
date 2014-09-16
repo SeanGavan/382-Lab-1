@@ -34,6 +34,7 @@ Result: 0x44, 0x11, 0x88, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0x00, 0x00, 0xff
 
 Observations and Conclusions
 ----------------------------
+The code implemented all functionality with the exception of a O(logn) time for muliplication. The compare instruction can be very problematic if not thought about very carefully. Multiple registers are needed to keep track of all the operands and operations. 
 
 Documentation
 -------------
